@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "ofxGui.h"
 
 class ofApp : public ofBaseApp{
 
@@ -21,4 +22,12 @@ public:
     void dragEvent(ofDragInfo dragInfo);
     void gotMessage(ofMessage msg);
 
+
+    ofxPanel gui;
+    ofParameter<float> red;
+    ofParameter<float> green;
+    ofParameter<float> blue;
+    ofParameter<float> alpha;
+
+    ofVideoGrabber cam;
 };
