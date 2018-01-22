@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "ofxGui.h"
+#include "ofxOpenCv.h"
 
 class ofApp : public ofBaseApp{
 
@@ -21,13 +22,18 @@ public:
     void windowResized(int w, int h);
     void dragEvent(ofDragInfo dragInfo);
     void gotMessage(ofMessage msg);
-
+	
+    // select area within webcam image
+    ofVec2f sourceIn, sourceOut, sourceDim;
 
     ofxPanel gui;
     ofParameter<float> red;
     ofParameter<float> green;
     ofParameter<float> blue;
     ofParameter<float> alpha;
+    ofParameter<int> threshold;
+    ofParameter<int> dilation;
+    
 
     ofVideoGrabber cam;
 };
