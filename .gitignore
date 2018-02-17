@@ -54,6 +54,9 @@ ipch/
 local.properties
 .externalToolBuilders
 
+# QT Creator
+*.qbs
+
 ##################
 # operating system
 ##################
