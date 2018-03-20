@@ -10,6 +10,13 @@ public:
     void setup();
     void update();
     void draw();
+    void setupGui();
+    void drawGui(ofEventArgs & args);
+    void toggleFS(bool& _value);
+    void changeCam(bool& _value);
+    void flipH(bool& _value);
+    void flipV(bool& _value);
+    void setDevice(ofVideoDevice &device);
 
     void keyPressed(int key);
     void keyReleased(int key);
@@ -33,7 +40,21 @@ public:
     ofParameter<float> alpha;
     ofParameter<int> threshold;
     ofParameter<int> dilation;
+    ofParameter<bool> invert;
+    ofParameter<bool> crop;
+    ofParameter<bool> full_screen;
+    bool go_full;   // helper
+    ofParameter<bool> expand_image;
+    ofParameter<bool> change_cam;
+    ofParameter<bool> flip_h;
+    ofParameter<bool> flip_v;
+//    ofParameter<bool> change_cam;
     
 
-    ofVideoGrabber cam;
+//    ofVideoGrabber cam;
+    vector<ofVideoDevice> devices;
+    int cam_id;
+    int num_cams;
+    ofVideoGrabber * cam = NULL;
+    int cam_w, cam_h;
 };
