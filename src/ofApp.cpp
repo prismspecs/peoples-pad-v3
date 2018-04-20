@@ -1,6 +1,5 @@
 /*
  TO DO:
- invert color option
  
  */
 
@@ -14,8 +13,6 @@ void ofApp::setup(){
     
     // position the render window on other display
     ofSetWindowPosition(ofGetScreenWidth(), 0);
-    
-    
     
     // set up cameras
     cam = new ofVideoGrabber();
@@ -31,8 +28,11 @@ void ofApp::setup(){
     cam_w = 1280;
     cam_h = 720;
     setDevice(devices[0]);
+    changeCropHelper();
 
     ofSetBackgroundAuto(false);
+    
+    syphon.setName("People's Pad");
 }
 
 //--------------------------------------------------------------
@@ -46,6 +46,10 @@ void ofApp::setupGui(){
     gui.add(dilation.set("outline thickness", 1, 0, 5));
     gui.add(invert.set("invert image", true));
     gui.add(crop.set("crop webcam image", false));
+    gui.add(crop_left.set("crop left %",0,0,50));
+    gui.add(crop_right.set("crop right %",0,0,50));
+    gui.add(crop_top.set("crop top %",0,0,50));
+    gui.add(crop_bottom.set("crop bottom %",0,0,50));
     gui.add(full_screen.set("toggle fullscreen", false));
     gui.add(expand_image.set("expand webcam image", true));
     gui.add(change_cam.set("change webcam", false));
@@ -54,8 +58,10 @@ void ofApp::setupGui(){
     
     full_screen.addListener(this, &ofApp::toggleFS);
     change_cam.addListener(this, &ofApp::changeCam);
-    flip_h.addListener(this, &ofApp::flipH);
-    flip_v.addListener(this, &ofApp::flipV);
+    crop_left.addListener(this, &ofApp::changeCrop);
+    crop_right.addListener(this, &ofApp::changeCrop);
+    crop_top.addListener(this, &ofApp::changeCrop);
+    crop_bottom.addListener(this, &ofApp::changeCrop);
 }
 
 //--------------------------------------------------------------
@@ -98,19 +104,18 @@ void ofApp::draw(){
 
         altered.getPixels().mirror(flip_v, flip_h);
         
-        
         ofSetColor(red,green,blue,alpha);
         
         if(invert)
             altered.invert();
         
         
-        if(crop && !ofGetMousePressed()) {
+        if(crop) {
             ofImage cropped;
-            cropped.allocate(sourceDim.x, sourceDim.y, OF_IMAGE_COLOR_ALPHA);
+            cropped.allocate(crop_w, crop_h, OF_IMAGE_COLOR_ALPHA);
             cropped.setFromPixels(altered.getPixels());
-            cropped.crop(sourceOut.x, sourceOut.y, sourceDim.x, sourceDim.y);
-            cropped.draw(0,0);
+            cropped.crop(crop_x, crop_y, crop_w, crop_h);
+            cropped.draw(0,0, ofGetWidth(), ofGetHeight());
         } else {
         
             if(expand_image) {
@@ -121,11 +126,7 @@ void ofApp::draw(){
         
         }
 
-        // draw the source selection rectangle
-        ofNoFill();
-        ofSetColor(255,255,0,127);
-        ofDrawRectangle(sourceIn.x, sourceIn.y, sourceDim.x, sourceDim.y);
-
+        syphon.publishScreen();
     }
 }
 
@@ -165,45 +166,20 @@ void ofApp::keyPressed(int key){
 }
 
 //--------------------------------------------------------------
-void ofApp::keyReleased(int key){
-    
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y ){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseDragged(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
 
-	sourceIn.set(x,y);
+//    sourceIn.set(x,y);
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
 	
-	sourceOut.set(x,y);
-
-	int w = x - sourceIn.x;
-	int h = y - sourceIn.y;
-	
-	sourceDim.set(w,h);
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseEntered(int x, int y){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseExited(int x, int y){
-
+//    sourceOut.set(x,y);
+//
+//    int w = x - sourceIn.x;
+//    int h = y - sourceIn.y;
+//
+//    sourceDim.set(w,h);
 }
 
 //--------------------------------------------------------------
@@ -212,19 +188,11 @@ void ofApp::windowResized(int w, int h){
 }
 
 //--------------------------------------------------------------
-void ofApp::gotMessage(ofMessage msg){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){
-
-}
-
 void ofApp::toggleFS(bool& _value) {
     go_full = true;
 }
 
+//--------------------------------------------------------------
 void ofApp::changeCam(bool& _value) {
     cam_id ++;
     cam_id %= devices.size();
@@ -233,9 +201,17 @@ void ofApp::changeCam(bool& _value) {
     change_cam = false;
 }
 
-void ofApp::flipH(bool& _value) {
+//--------------------------------------------------------------
+void ofApp::changeCrop(int& _value) {
+    changeCropHelper();
 }
 
-void ofApp::flipV(bool& _value) {
+//--------------------------------------------------------------
+void ofApp::changeCropHelper() {
+    crop_x = (crop_left * cam_w / 100);
+    crop_y = (crop_top * cam_h / 100);
+    crop_w = cam_w - ((crop_left + crop_right) * cam_w / 100);
+    crop_h = cam_h - (crop_top + crop_bottom) * cam_h / 100;
+    
+    cout << crop_x << "," << crop_y << "," << crop_w << "," << crop_h << endl;
 }
-

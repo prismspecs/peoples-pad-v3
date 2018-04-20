@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxGui.h"
 #include "ofxOpenCv.h"
+#include "ofxSyphon.h"
 
 class ofApp : public ofBaseApp{
 
@@ -14,24 +15,14 @@ public:
     void drawGui(ofEventArgs & args);
     void toggleFS(bool& _value);
     void changeCam(bool& _value);
-    void flipH(bool& _value);
-    void flipV(bool& _value);
+    void changeCrop(int& _value);
+    void changeCropHelper();
     void setDevice(ofVideoDevice &device);
 
     void keyPressed(int key);
-    void keyReleased(int key);
-    void mouseMoved(int x, int y );
-    void mouseDragged(int x, int y, int button);
     void mousePressed(int x, int y, int button);
     void mouseReleased(int x, int y, int button);
-    void mouseEntered(int x, int y);
-    void mouseExited(int x, int y);
     void windowResized(int w, int h);
-    void dragEvent(ofDragInfo dragInfo);
-    void gotMessage(ofMessage msg);
-	
-    // select area within webcam image
-    ofVec2f sourceIn, sourceOut, sourceDim;
 
     ofxPanel gui;
     ofParameter<float> red;
@@ -48,13 +39,14 @@ public:
     ofParameter<bool> change_cam;
     ofParameter<bool> flip_h;
     ofParameter<bool> flip_v;
-//    ofParameter<bool> change_cam;
-    
+    ofParameter<int> crop_left, crop_right, crop_top, crop_bottom;
+    int crop_x, crop_y, crop_w, crop_h; // helpers
 
-//    ofVideoGrabber cam;
     vector<ofVideoDevice> devices;
     int cam_id;
     int num_cams;
     ofVideoGrabber * cam = NULL;
     int cam_w, cam_h;
+    
+    ofxSyphonServer syphon;
 };
