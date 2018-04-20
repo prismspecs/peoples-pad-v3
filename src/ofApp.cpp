@@ -55,6 +55,7 @@ void ofApp::setupGui(){
     gui.add(change_cam.set("change webcam", false));
     gui.add(flip_h.set("flip horizontal", false));
     gui.add(flip_v.set("flip vertical", false));
+    gui.add(capture_still.set("capture still", false));
     
     full_screen.addListener(this, &ofApp::toggleFS);
     change_cam.addListener(this, &ofApp::changeCam);
@@ -125,9 +126,23 @@ void ofApp::draw(){
             }
         
         }
+        
+        // capture screenshot
+        if(capture_still) {
+            ofImage shot;
+            shot.grabScreen(0, 0 , ofGetWidth(), ofGetHeight());
+            shot.save("ss.png");
+            
+            capture_still = false;
+        }
 
         syphon.publishScreen();
     }
+}
+
+//--------------------------------------------------------------
+void ofApp::drawGui(ofEventArgs & args){
+    gui.draw();
 }
 
 //--------------------------------------------------------------
@@ -142,11 +157,6 @@ void ofApp::setDevice(ofVideoDevice &device) {
     cam->setDeviceID(device.id);
     cam->initGrabber(cam_w, cam_h);
     cam_w = cam->getWidth(); cam_h = cam->getHeight();
-}
-
-//--------------------------------------------------------------
-void ofApp::drawGui(ofEventArgs & args){
-    gui.draw();
 }
 
 //--------------------------------------------------------------

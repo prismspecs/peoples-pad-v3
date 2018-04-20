@@ -13,11 +13,11 @@ public:
     void draw();
     void setupGui();
     void drawGui(ofEventArgs & args);
+    void setDevice(ofVideoDevice &device);
     void toggleFS(bool& _value);
     void changeCam(bool& _value);
     void changeCrop(int& _value);
     void changeCropHelper();
-    void setDevice(ofVideoDevice &device);
 
     void keyPressed(int key);
     void mousePressed(int x, int y, int button);
@@ -41,6 +41,7 @@ public:
     ofParameter<bool> flip_v;
     ofParameter<int> crop_left, crop_right, crop_top, crop_bottom;
     int crop_x, crop_y, crop_w, crop_h; // helpers
+    ofParameter<bool> capture_still;
 
     vector<ofVideoDevice> devices;
     int cam_id;
