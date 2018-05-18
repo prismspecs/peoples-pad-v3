@@ -3,9 +3,12 @@
 #include "ofMain.h"
 #include "ofxGui.h"
 #include "ofxOpenCv.h"
-#include "ofxSyphon.h"
 
-class ofApp : public ofBaseApp{
+#ifdef TARGET_OSX
+#include "ofxSyphon.h"
+#endif
+
+class ofApp : public ofBaseApp {
 
 public:
     void setup();
@@ -49,5 +52,7 @@ public:
     ofVideoGrabber * cam = NULL;
     int cam_w, cam_h;
     
+    #ifdef TARGET_OSX
     ofxSyphonServer syphon;
+    #endif
 };

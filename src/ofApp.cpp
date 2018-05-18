@@ -1,6 +1,6 @@
 /*
  TO DO:
- 
+ fix macOS version issues
  */
 
 #include "ofApp.h"
@@ -32,7 +32,9 @@ void ofApp::setup(){
 
     ofSetBackgroundAuto(false);
     
+    #ifdef TARGET_OSX
     syphon.setName("People's Pad");
+    #endif
 }
 
 //--------------------------------------------------------------
@@ -136,7 +138,9 @@ void ofApp::draw(){
             capture_still = false;
         }
 
+        #ifdef TARGET_OSX
         syphon.publishScreen();
+        #endif
     }
 }
 
@@ -178,18 +182,11 @@ void ofApp::keyPressed(int key){
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
 
-//    sourceIn.set(x,y);
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
-	
-//    sourceOut.set(x,y);
-//
-//    int w = x - sourceIn.x;
-//    int h = y - sourceIn.y;
-//
-//    sourceDim.set(w,h);
+
 }
 
 //--------------------------------------------------------------

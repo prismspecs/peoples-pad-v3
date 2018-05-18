@@ -10,8 +10,7 @@ int main( ){
     
     
     ofGLFWWindowSettings settings;
-    settings.width = 1024;
-    settings.height = 768;
+    settings.setSize(1024,768);
 //    settings.windowMode = OF_GAME_MODE;
 //    settings.windowMode = OF_FULLSCREEN;
     settings.monitor = 1;
@@ -19,8 +18,7 @@ int main( ){
     settings.resizable = true;
     shared_ptr<ofAppBaseWindow> mainWindow = ofCreateWindow(settings);
     
-    settings.width = 220;
-    settings.height = 400;
+    settings.setSize(220,440);
     settings.windowMode = OF_WINDOW;
     settings.monitor = 0;
     settings.setPosition(ofVec2f(0,0));
