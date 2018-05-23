@@ -6,39 +6,42 @@
 #include "ofApp.h"
 
 //--------------------------------------------------------------
-void ofApp::setup(){
+void ofApp::setup() {
     // companion flag to make multiple window fullscreen
     // toggle work... bit of a hack
     go_full = false;
-    
+
     // position the render window on other display
     ofSetWindowPosition(ofGetScreenWidth(), 0);
-    
+
     // set up cameras
     cam = new ofVideoGrabber();
     devices = cam->listDevices();
-    for(int i = 0; i < devices.size(); i++){
-        if(devices[i].bAvailable){
+    for(int i = 0; i < devices.size(); i++) {
+        if(devices[i].bAvailable) {
             ofLogNotice() << devices[i].id << ": " << devices[i].deviceName;
-        }else{
+        } else {
             ofLogNotice() << devices[i].id << ": " << devices[i].deviceName << " - unavailable ";
         }
     }
-    
+
     cam_w = 1280;
     cam_h = 720;
     setDevice(devices[0]);
     changeCropHelper();
 
     ofSetBackgroundAuto(false);
-    
-    #ifdef TARGET_OSX
+
+    colorImg.allocate(cam->getWidth(), cam->getHeight());
+    altered.allocate(cam->getWidth(), cam->getHeight());
+
+#ifdef TARGET_OSX
     syphon.setName("People's Pad");
-    #endif
+#endif
 }
 
 //--------------------------------------------------------------
-void ofApp::setupGui(){
+void ofApp::setupGui() {
     gui.setup("OPTIONS");
     gui.add(red.set("red",255,0,255));
     gui.add(green.set("green",255,0,255));
@@ -58,7 +61,7 @@ void ofApp::setupGui(){
     gui.add(flip_h.set("flip horizontal", false));
     gui.add(flip_v.set("flip vertical", false));
     gui.add(capture_still.set("capture still", false));
-    
+
     full_screen.addListener(this, &ofApp::toggleFS);
     change_cam.addListener(this, &ofApp::changeCam);
     crop_left.addListener(this, &ofApp::changeCrop);
@@ -68,10 +71,51 @@ void ofApp::setupGui(){
 }
 
 //--------------------------------------------------------------
-void ofApp::update(){
-    
-if (cam) cam->update();
-    
+void ofApp::update() {
+
+    if (cam) cam->update();
+
+    if(cam->isFrameNew()) {
+
+        colorImg.setFromPixels(cam->getPixels());
+        altered = colorImg;
+        altered.threshold(threshold);
+
+
+        // this helps to make text drawn more visible
+        if(dilation > 0) {
+            for(int i = 0; i < dilation; i++) {
+                //altered.dilate();
+                altered.erode_3x3();
+            }
+        }
+
+        altered.getPixels().mirror(flip_v, flip_h);
+
+        ofSetColor(red,green,blue,alpha);
+
+        if(invert)
+            altered.invert();
+
+
+
+        if(crop) {
+            cropped.allocate(crop_w, crop_h, OF_IMAGE_COLOR_ALPHA);
+            cropped.setFromPixels(altered.getPixels());
+            cropped.crop(crop_x, crop_y, crop_w, crop_h);
+        }
+
+        // capture screenshot
+        if(capture_still) {
+            ofImage shot;
+            shot.grabScreen(0, 0, ofGetWidth(), ofGetHeight());
+            shot.save("ss.png");
+
+            capture_still = false;
+        }
+
+    }
+
     if(go_full) {
         ofToggleFullscreen();
         go_full = false;
@@ -79,79 +123,35 @@ if (cam) cam->update();
 }
 
 //--------------------------------------------------------------
-void ofApp::draw(){
-    
-    if(cam->isFrameNew()) {
-        
-        ofBackground(0, 0, 0);
+void ofApp::draw() {
 
-        // first need to create a color image and then
-        // copy to a grayscale to avoid allocation problems
-        ofxCvColorImage colorImg;
-        ofxCvGrayscaleImage altered;
-        //std::cout << cam.getWidth() << ", " << cam.getHeight() << std::endl;
-        colorImg.allocate(cam->getWidth(), cam->getHeight());
-        altered.allocate(cam->getWidth(), cam->getHeight());
-        colorImg.setFromPixels(cam->getPixels());
-        altered = colorImg;
-        altered.threshold(threshold);
-        
-        
-        // this helps to make text drawn more visible
-        if(dilation > 0) {
-            for(int i = 0; i < dilation;i++) {
-                //altered.dilate();
-                altered.erode_3x3();
-            }
-        }
 
-        altered.getPixels().mirror(flip_v, flip_h);
-        
-        ofSetColor(red,green,blue,alpha);
-        
-        if(invert)
-            altered.invert();
-        
-        
-        if(crop) {
-            ofImage cropped;
-            cropped.allocate(crop_w, crop_h, OF_IMAGE_COLOR_ALPHA);
-            cropped.setFromPixels(altered.getPixels());
-            cropped.crop(crop_x, crop_y, crop_w, crop_h);
-            cropped.draw(0,0, ofGetWidth(), ofGetHeight());
+    ofBackground(0, 0, 0);
+
+    if(crop) {
+        cropped.draw(0,0, ofGetWidth(), ofGetHeight());
+    } else {
+
+        if(expand_image) {
+            altered.draw(0,0,ofGetWidth(),ofGetHeight());
         } else {
-        
-            if(expand_image) {
-                altered.draw(0,0,ofGetWidth(),ofGetHeight());
-            } else {
-                altered.draw(0,0);
-            }
-        
+            altered.draw(0,0);
         }
-        
-        // capture screenshot
-        if(capture_still) {
-            ofImage shot;
-            shot.grabScreen(0, 0 , ofGetWidth(), ofGetHeight());
-            shot.save("ss.png");
-            
-            capture_still = false;
-        }
-
-        #ifdef TARGET_OSX
-        syphon.publishScreen();
-        #endif
     }
+
+#ifdef TARGET_OSX
+syphon.publishScreen();
+#endif
 }
 
 //--------------------------------------------------------------
-void ofApp::drawGui(ofEventArgs & args){
+void ofApp::drawGui(ofEventArgs & args) {
     gui.draw();
 }
 
 //--------------------------------------------------------------
 void ofApp::setDevice(ofVideoDevice &device) {
-    
+
     if(cam && cam->isInitialized()) {
         cam->close();
         delete cam;
@@ -160,11 +160,12 @@ void ofApp::setDevice(ofVideoDevice &device) {
     cout << "Device " << device.deviceName << " ID " << device.id << endl;
     cam->setDeviceID(device.id);
     cam->initGrabber(cam_w, cam_h);
-    cam_w = cam->getWidth(); cam_h = cam->getHeight();
+    cam_w = cam->getWidth();
+    cam_h = cam->getHeight();
 }
 
 //--------------------------------------------------------------
-void ofApp::keyPressed(int key){
+void ofApp::keyPressed(int key) {
     if (key == OF_KEY_UP) {
         cam_id ++;
         cam_id %= devices.size();
@@ -180,17 +181,17 @@ void ofApp::keyPressed(int key){
 }
 
 //--------------------------------------------------------------
-void ofApp::mousePressed(int x, int y, int button){
+void ofApp::mousePressed(int x, int y, int button) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseReleased(int x, int y, int button){
+void ofApp::mouseReleased(int x, int y, int button) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::windowResized(int w, int h){
+void ofApp::windowResized(int w, int h) {
 
 }
 
@@ -204,8 +205,11 @@ void ofApp::changeCam(bool& _value) {
     cam_id ++;
     cam_id %= devices.size();
     setDevice(devices[cam_id]);
-    
+
     change_cam = false;
+
+    colorImg.allocate(cam->getWidth(), cam->getHeight());
+    altered.allocate(cam->getWidth(), cam->getHeight());
 }
 
 //--------------------------------------------------------------
@@ -219,6 +223,6 @@ void ofApp::changeCropHelper() {
     crop_y = (crop_top * cam_h / 100);
     crop_w = cam_w - ((crop_left + crop_right) * cam_w / 100);
     crop_h = cam_h - (crop_top + crop_bottom) * cam_h / 100;
-    
+
     cout << crop_x << "," << crop_y << "," << crop_w << "," << crop_h << endl;
 }

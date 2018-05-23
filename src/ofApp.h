@@ -51,8 +51,12 @@ public:
     int num_cams;
     ofVideoGrabber * cam = NULL;
     int cam_w, cam_h;
-    
-    #ifdef TARGET_OSX
+
+	ofxCvColorImage colorImg;
+	ofxCvGrayscaleImage altered;	
+	ofImage cropped;
+
+#ifdef TARGET_OSX
     ofxSyphonServer syphon;
-    #endif
+#endif
 };
