@@ -6,6 +6,10 @@
 /bin/*
 !/bin/data/
 
+*.plist
+*.xcodeproj
+*.xcconfig
+
 #########
 # general
 #########
