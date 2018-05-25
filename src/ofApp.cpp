@@ -1,6 +1,5 @@
 /*
  TO DO:
- fix macOS version issues
  */
 
 #include "ofApp.h"
@@ -81,11 +80,9 @@ void ofApp::update() {
         altered = colorImg;
         altered.threshold(threshold);
 
-
         // this helps to make text drawn more visible
         if(dilation > 0) {
             for(int i = 0; i < dilation; i++) {
-                //altered.dilate();
                 altered.erode_3x3();
             }
         }
@@ -97,10 +94,7 @@ void ofApp::update() {
         if(invert)
             altered.invert();
 
-
-
         if(crop) {
-            cropped.allocate(crop_w, crop_h, OF_IMAGE_COLOR_ALPHA);
             cropped.setFromPixels(altered.getPixels());
             cropped.crop(crop_x, crop_y, crop_w, crop_h);
         }
@@ -140,7 +134,7 @@ void ofApp::draw() {
     }
 
 #ifdef TARGET_OSX
-syphon.publishScreen();
+    syphon.publishScreen();
 #endif
 }
 
@@ -223,6 +217,8 @@ void ofApp::changeCropHelper() {
     crop_y = (crop_top * cam_h / 100);
     crop_w = cam_w - ((crop_left + crop_right) * cam_w / 100);
     crop_h = cam_h - (crop_top + crop_bottom) * cam_h / 100;
+
+    cropped.allocate(crop_w, crop_h, OF_IMAGE_COLOR_ALPHA);
 
     cout << crop_x << "," << crop_y << "," << crop_w << "," << crop_h << endl;
 }
